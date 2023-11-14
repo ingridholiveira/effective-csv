@@ -5,6 +5,7 @@
  */
 
 import { Button, Flex, Input } from "@chakra-ui/react";
+import { ChangeEvent } from "react";
 
 export interface IOption {
   id?: string | number | boolean;
@@ -17,19 +18,25 @@ export interface InputSearchProps {
   results?: IOption[];
   notFoundText?: string;
   placeholder?: string;
-  setResult?: (options: IOption[]) => void;
+  onChangeSearch?: (arg0: ChangeEvent<HTMLInputElement>) => void;
+  onSearch?: () => void;
 }
 
-const InputSearch = (props: InputSearchProps) => {
+
+const InputSearch = ({onChangeSearch, onSearch}: InputSearchProps) => {
+  const onChangeText = async (event: ChangeEvent<HTMLInputElement>) => {
+    onChangeSearch?.(event);
+  };
+
   return (
     <>
       <Flex gap={4} direction="row" align="center" padding={8}>
-        <Input />
+        <Input onChange={onChangeText} />
         <Button
           colorScheme="green"
           variant="outline"
           size="md"
-          onClick={() => console.log("procurou")}
+          onClick={onSearch}
         >
           Search
         </Button>

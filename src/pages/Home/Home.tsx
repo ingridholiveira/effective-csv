@@ -4,7 +4,7 @@
  *
  */
 
-import { Box } from "@chakra-ui/react";
+import { Box, Card, CardHeader, CardBody, CardFooter, SimpleGrid } from "@chakra-ui/react";
 import InputSearch from "../../components/InputSearch/InputSearch";
 import InputFile, { IFile } from "../../components/InputFile/InputFile";
 import { ChangeEvent, useState } from "react";
@@ -17,42 +17,23 @@ type FormData = {
   name: string;
 };
 
-type User = {
-  avatar_url: string;
-  url: string;
-  followers: string;
-  location: string;
-  name: string;
-};
-
 interface IGenericForm {
   files: IFile[];
 }
 
 const Home = () => {
-  // const fileDefault = [
-  // 	file1: {
-  // 		id: '3',
-  // 		name: 'Analise_Critica_3.pdf',
-  // 		size: 5,
-  // 		type: 'application/pdf',
-  // 		linkBy: 'https://google.com.br',
-  // 	},
-  // ];
-
-  // const { isOpen, onOpen, onClose } = useDisclosure();
-
   const [formData, setFormData] = useState<FormData>({
     name: "",
   });
-  const [user, setUser] = useState<User>();
-  const allowedExtensions = ".csv";
+  const [users, setUsers] = useState<any>();
+  const [search, setSearch] = useState<string>('');
+  const allowedExtensions = "text/csv";
 
   const fileSchema = yup
     .mixed()
     .test("type", "Selecione um arquivo do tipo .csv!", (value?: IFile) => {
       const isInvalid = !allowedExtensions.includes(value?.type!);
-
+      console.log(value?.type!);
       if (isInvalid && value) {
         console.log("Formato nao permitido");
         return false;
@@ -94,14 +75,10 @@ const Home = () => {
         file,
       });
 
-
-      //mudar para type user
       const { data } = await axios.post(
-        "https://httpbin.org/post",
+        "http://localhost:3000/api/files",
         {
-          firstName: "Fred",
-          lastName: "Flintstone",
-          orders: [1, 2, 3],
+          file: file
         },
         {
           headers: {
@@ -109,62 +86,34 @@ const Home = () => {
           },
         }
       );
-
       console.log(data);
-
-      //   axios.postForm("https://httpbin.org/post", {
-      //     my_field: "my value",
-      //     my_buffer: new Blob([1, 2, 3]),
-      //     my_file: fileInput.files, // FileList will be unwrapped as sepate fields
-      //   });
+      loadCsvData();
     }
-
-    const name = event.target.name;
-    const value = event.target.value;
-
-    setFormData({ ...formData, [name]: value });
   };
 
-  const handleDeleteFile = (value: IFile, index: number) => {
-    // if (!isDisabled) {
-    // eslint-disable-next-line no-console
-    console.log(value);
-    remove(index);
-    // }
-  };
-
-  // const handleDownloadFile = (file: IFile) => {
-  // 	// eslint-disable-next-line no-console
-  // 	console.log('download file', file);
-  // };
-
-  // const handleDeleteFile = (file: IFile) => {
-  // 	// eslint-disable-next-line no-console
-  // 	console.log('delete file', file);
-  // };
-
-  // const handleDelete = () => {
-  // 	// eslint-disable-next-line no-console
-  // 	console.log('confirmou exclusão');
-  // };
-
-  // const onSubmit = (values: IGenericForm) => {
-  // 	// eslint-disable-next-line no-console
-  // 	console.log('values', values);
-  // 	reset();
-  // };
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const loadCsvData = async () => {
+   
     axios
-      .get(`https://api.github.com/users/${formData.name}`)
+      .get(`http://localhost:3000/api/users/?q=${search}`)
       .then((response) => {
-        setUser(response.data);
+        setUsers(response.data);
+        const result = Object.fromEntries(response.data.map((value: any, index: any) => [index, value]))
+
+        console.log(result)
       })
       .catch((err) => {
-        setUser(undefined);
+        setUsers(undefined);
       });
   };
+  const onChangeSearch = async (event: ChangeEvent<HTMLInputElement>) => {
+    setSearch(event.target.value);
+   
+  }
+
+  const clickSearch = async () => {
+    console.log('caiu');
+    loadCsvData();
+  }
 
   return (
     <>
@@ -177,87 +126,19 @@ const Home = () => {
           data-testid="input--upload"
           onChangeDoc={onChangeFile}
         />
-        <InputSearch />
-        {fields?.map((item, index) => (
-          <Box key={item.id} display="flex">
-            <Controller
-              name="files"
-              control={control}
-              render={() => (
-                <InputFile
-                  file={item}
-                  data-testid="input--upload"
-                  onDeleteDoc={() => handleDeleteFile(item, index)}
-                  //   disabled={isDisabled}
-                />
-              )}
-            />
-          </Box>
-        ))}
+        <InputSearch onChangeSearch={onChangeSearch} onSearch={clickSearch} />
       </Box>
-      {/*<Box>
-				<Box sx={styles.container}>
-					<Grid sx={styles.fieldsContent}></Grid>
-				</Box>
-				<Grid as="form" onSubmit={handleSubmit(onSubmit)} sx={styles.fieldsContent}>
-					{fields?.map((item, index) => (
-						<Box key={item.id} display="flex">
-							<Controller
-								name="file"
-								control={control}
-								render={() => <InputFile file={item} data-testid="input--upload" onDeleteDoc={() => remove(index)} />}
-		 <Container>
-				<Box mb={5} as="form" onSubmit={handleSubmit(onSubmit)}>
-					<Controller
-						name="files"
-						control={control}
-						render={() => (
-							<FileModal
-								label="Enviar"
-								subLabel="'.pdf', '.docx', '.xlsx' ou '.pptx'"
-								acceptValues={allowedExtensions}
-								onChangeDoc={handleChangeDoc}
-								error={errors?.files}
-							/>
-						)}
-					/>
-					<Button type="submit" ml={3}>
-						clickme
-					</Button>
-				</Box>
-				<Box mb={5} as="form" onSubmit={handleSubmit(onSubmit)}>
-					<Controller
-						name="files"
-						control={control}
-						render={() => (
-							<FileModal
-								defaultValues={modalFileDefault}
-								label="Visualizar"
-								subLabel="'.pdf', '.docx', '.xlsx' ou '.pptx'"
-								acceptValues={allowedExtensions}
-								onDownload={handleDownloadFile}
-								onDelete={handleDeleteFile}
-							/>
-						)}
-					/>
-				</Box>
-
-				<CustomModal
-					icons={[{ type: 'info' }]}
-					title="Aviso!"
-					body="O formato de todos os arquivos devem ser: '.pdf', '.docx', '.xlsx' ou '.pptx' de no máximo 10mb."
-					isOpen={isOpen}
-					onClose={onClose}
-					actions={[
-						{
-							label: 'Entendido',
-							type: 'primary',
-							onClick: onClose,
-							datatestid: 'button--confirm',
-						},
-					]}
-				/>
-			</Container> */}
+      <SimpleGrid spacing={4} templateColumns='repeat(auto-fill, minmax(200px, 1fr))'>
+        {users?.map((item: any, index: number) => (        
+            <Card>
+              <CardHeader>{item.Name}</CardHeader>
+              <CardBody>
+                {item.Username}
+              </CardBody>
+              <CardFooter>{item.Telefone}</CardFooter>
+            </Card>         
+        ))}
+         </SimpleGrid>
     </>
   );
 };

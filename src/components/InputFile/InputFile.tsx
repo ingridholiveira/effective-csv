@@ -41,16 +41,12 @@ interface InputFileProps extends InputProps {
   required?: boolean;
   disabled?: boolean;
   onChangeDoc?: (arg0: ChangeEvent<HTMLInputElement>) => void;
-  onDownloadDoc?: (id: string) => void;
-  onDeleteDoc?: (id: string) => void;
   isListing?: boolean;
   acceptValues?: string;
 }
 
 const InputFile = ({
   onChangeDoc,
-  onDownloadDoc,
-  onDeleteDoc,
   file,
   label,
   subLabel,
@@ -118,12 +114,6 @@ const InputFile = ({
 
   const MB_IN_KB = 1024;
 
-  const onDownloadFile = async (event: string) => {
-    onDownloadDoc?.(event);
-  };
-  const onDeleteFile = async (event: string) => {
-    onDeleteDoc?.(event);
-  };
   const onChangeFile = async (event: ChangeEvent<HTMLInputElement>) => {
     onChangeDoc?.(event);
   };
@@ -145,26 +135,6 @@ const InputFile = ({
                   </Text>
                 </Box>
               </Box>
-              {isListing && (
-                <IconButton
-                  sx={styles.buttonIcons}
-                  aria-label={"Baixar arquivo"}
-                  variant="unstyled"
-                  icon={<DownloadIcon />}
-                  data-testid={"download"}
-                  onClick={() => onDownloadFile?.(file?.id!)}
-                />
-              )}
-              {!isListing && (
-                <IconButton
-                  sx={styles.buttonIcons}
-                  aria-label={"Excluir arquivo"}
-                  variant="unstyled"
-                  icon={<DeleteIcon />}
-                  data-testid={"delete"}
-                  onClick={() => onDeleteFile?.(file?.id!)}
-                />
-              )}
             </Flex>
           </Flex>
         </FormControl>
